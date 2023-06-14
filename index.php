@@ -35,12 +35,12 @@ function calculateEnergyPerDay($voltage, $current)
 function CalculateElectricityRatesPerDay($voltage, $current, $currentRate)
 {
   $energyPerDay = calculateEnergyPerHour($voltage, $current);
-
+  
   $totalPerDay = array();
   for ($day = 1; $day <= 31; $day++) {
     $totalPerDay[$day] = $energyPerDay[24] * ($currentRate / 100) * $day;
   }
-
+  
   return $totalPerDay;
 }
 
@@ -51,8 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
   $kwhPerHour = calculateEnergyPerHour($voltage, $current);
   $rates = calculateElectricityRatesPerHour($currentRate, $kwhPerHour);
-  $kwhPerDay = calculateEnergyPerDay($voltage, $current);
-  $ratesPerDay = CalculateElectricityRatesPerDay($voltage, $current, $currentRate);
+  $kwhPerDay = calculateEnergyPerDay($voltage,$current);
+  $ratesPerDay = CalculateElectricityRatesPerDay($voltage, $current,$currentRate);
 }
 ?>
 
@@ -74,16 +74,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
       <div class="form-group">
         <label for="voltage">Voltage (V):</label>
-        <input type="number" name="voltage" step="any" class="form-control" value="<?= $_POST['voltage'] ?? '' ?>">
+        <input type="number" name="voltage" step="any" class="form-control" value="<?= $_POST['voltage'] ?? '' ?>" required>
       </div>
       <div class="form-group">
         <label for="current">Current (A):</label>
-        <input type="number" name="current" step="any" class="form-control" value="<?= $_POST['current'] ?? '' ?>">
+        <input type="number" name="current" step="any" class="form-control" value="<?= $_POST['current'] ?? '' ?>" required>
       </div>
       <div class="form-group">
         <label for="rate">Current Rate (RM):</label>
-        <select name="rate" class="form-control">
-          <option value="" <?= !isset($_POST['rate']) ? 'selected' : '' ?> disabled></option>
+        <select name="rate" class="form-control" required>
+        <option value="" <?= !isset($_POST['rate']) ? 'selected' : '' ?> disabled></option>
           <option value="21.8" <?= isset($_POST['rate']) && $_POST['rate'] == '21.8' ? 'selected' : '' ?>>21.80</option>
           <option value="33.4" <?= isset($_POST['rate']) && $_POST['rate'] == '33.4' ? 'selected' : '' ?>>33.40</option>
           <option value="51.6" <?= isset($_POST['rate']) && $_POST['rate'] == '51.6' ? 'selected' : '' ?>>51.60</option>
@@ -94,10 +94,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <button type="submit" class="btn btn-primary">Calculate</button>
     </form>
     <br>
-    <h2>Power: <?php $power = $voltage * $current / 1000;
-                echo $power; ?>kW</h2>
-    <h2>Rate: RM<?php $rm = $_POST['rate'] / 100;
-                echo $rm; ?></h2>
+
+    <?php if ($_SERVER["REQUEST_METHOD"] === "POST") : ?>
+    <h2>Power: <?php $power = $voltage * $current / 1000; echo $power; ?> kW</h2>
+    <h2>Rate: RM<?php $rm = $_POST['rate'] / 100; echo $rm; ?></h2>
+    <?php endif; ?>
 
     <?php
     if (isset($rates)) {
